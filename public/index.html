@@ -416,6 +416,18 @@
       "'Quantico', sans-serif"
     ];
 
+    // Track last font to ensure variety
+    let lastFontIndex = -1;
+
+    function getNextFont() {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * FONTS.length);
+      } while (newIndex === lastFontIndex && FONTS.length > 1);
+      lastFontIndex = newIndex;
+      return FONTS[newIndex];
+    }
+
     // Golden angle for hue progression - guarantees color variety
     const GOLDEN_ANGLE = 137.508;
     let lastHue = Math.random() * 360; // Start random
@@ -462,7 +474,7 @@
       typeSound.currentTime = 0;
 
       const apology = APOLOGIES[Math.floor(Math.random() * APOLOGIES.length)];
-      const font = FONTS[Math.floor(Math.random() * FONTS.length)];
+      const font = getNextFont();
       const colors = getNextColorPair();
       const bgColor = oklchToString(colors.bg);
       const textColor = oklchToString(colors.text);
