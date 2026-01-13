@@ -177,12 +177,54 @@
       font-size: calc(4vh + 2vmin);
       color: #241f20;
     }
+
+    /* Save button */
+    #save-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      padding: 10px;
+      z-index: 50;
+      color: inherit;
+    }
+
+    #save-btn.visible {
+      opacity: 0.4;
+    }
+
+    #save-btn:hover {
+      opacity: 1;
+    }
+
+    @media screen and (max-width: 600px) {
+      #save-btn {
+        bottom: 15px;
+        right: 15px;
+      }
+      #save-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="entry">
     <span>Click to enter</span>
   </div>
+
+  <button id="save-btn" title="Save as image (S)">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+  </button>
 
   <div class="container initial">
     <h1 id="apology">Press spacebar<br>to apologize</h1>
@@ -416,6 +458,9 @@
       "'Quantico', sans-serif"
     ];
 
+    // Track current apology for saving
+    let currentApology = null;
+
     // Track last font to ensure variety
     let lastFontIndex = -1;
 
@@ -496,6 +541,11 @@
 
       document.body.style.backgroundColor = bgColor;
       document.getElementById('description').classList.add('hidden');
+
+      // Store current state for saving and show save button
+      currentApology = { text: apology, font, bgColor, textColor };
+      document.getElementById('save-btn').classList.add('visible');
+      document.getElementById('save-btn').style.color = textColor;
     }
 
     // Typing animation
@@ -569,6 +619,86 @@
 
     // Touch/click support for apologies (only after entering)
     document.querySelector('.container').addEventListener('click', apologize);
+
+    // Save apology as image
+    function saveApology() {
+      if (!currentApology) return;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Set canvas size (Instagram-friendly square)
+      canvas.width = 1080;
+      canvas.height = 1080;
+
+      // Draw background
+      ctx.fillStyle = currentApology.bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Configure text
+      ctx.fillStyle = currentApology.textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Extract font family name
+      const fontFamily = currentApology.font;
+
+      // Word wrap and fit text
+      const maxWidth = canvas.width * 0.85;
+      const words = currentApology.text.split(' ');
+      let fontSize = 120;
+      let lines = [];
+
+      // Find optimal font size
+      while (fontSize > 30) {
+        ctx.font = `700 ${fontSize}px ${fontFamily}`;
+        lines = [];
+        let currentLine = '';
+
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          if (ctx.measureText(testLine).width > maxWidth) {
+            if (currentLine) lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+
+        const totalHeight = lines.length * fontSize * 1.2;
+        if (totalHeight < canvas.height * 0.8) break;
+        fontSize -= 5;
+      }
+
+      // Draw text centered
+      const lineHeight = fontSize * 1.2;
+      const startY = (canvas.height - (lines.length - 1) * lineHeight) / 2;
+
+      lines.forEach((line, i) => {
+        ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+      });
+
+      // Download
+      const link = document.createElement('a');
+      link.download = 'apology.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Save button click
+    document.getElementById('save-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      saveApology();
+    });
+
+    // Keyboard shortcut 'S' to save
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyS' && hasEntered && currentApology) {
+        e.preventDefault();
+        saveApology();
+      }
+    });
   </script>
 </body>
 </html>
