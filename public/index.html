@@ -638,20 +638,22 @@
       // Configure text
       ctx.fillStyle = currentApology.textColor;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textBaseline = 'alphabetic';
 
       // Extract font family name
       const fontFamily = currentApology.font;
 
       // Word wrap and fit text
-      const maxWidth = canvas.width * 0.85;
+      const maxWidth = canvas.width * 0.8;
       const words = currentApology.text.split(' ');
       let fontSize = 120;
       let lines = [];
+      let lineHeight;
 
       // Find optimal font size
       while (fontSize > 30) {
         ctx.font = `700 ${fontSize}px ${fontFamily}`;
+        lineHeight = fontSize * 1.25;
         lines = [];
         let currentLine = '';
 
@@ -666,17 +668,19 @@
         }
         if (currentLine) lines.push(currentLine);
 
-        const totalHeight = lines.length * fontSize * 1.2;
-        if (totalHeight < canvas.height * 0.8) break;
+        const totalHeight = lines.length * lineHeight;
+        if (totalHeight < canvas.height * 0.7) break;
         fontSize -= 5;
       }
 
-      // Draw text centered
-      const lineHeight = fontSize * 1.2;
-      const startY = (canvas.height - (lines.length - 1) * lineHeight) / 2;
+      // Calculate total text block height for perfect centering
+      const totalTextHeight = (lines.length - 1) * lineHeight;
+      const startY = (canvas.height - totalTextHeight) / 2 + fontSize * 0.35;
 
+      // Draw each line centered
       lines.forEach((line, i) => {
-        ctx.fillText(line, canvas.width / 2, startY + i * lineHeight);
+        const y = startY + i * lineHeight;
+        ctx.fillText(line, canvas.width / 2, y);
       });
 
       // Download
