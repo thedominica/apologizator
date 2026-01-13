@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Excuse me never</title>
+  <link rel="icon" href="favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&family=Roboto:wght@700&family=Raleway:wght@700&family=Abril+Fatface&family=Berkshire+Swash&family=Arvo:wght@700&family=Spectral:wght@700&family=Germania+One&family=Fredoka+One&family=Space+Mono:wght@700&family=Quantico:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.5s ease;
+      background-color: #f5f5f5;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 5vh 5vw;
+      transition: align-items 0.3s ease;
+    }
+
+    .container.initial {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 18vh;
+    }
+
+    #apology {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      text-align: center;
+      text-wrap: balance;
+      line-height: 1.15;
+      transition: color 0.5s ease, font-family 0.3s ease;
+      color: #241f20;
+      max-width: 85vw;
+    }
+
+    .container.initial #apology {
+      text-align: center;
+    }
+
+    #description {
+      margin-top: 3vh;
+      text-align: center;
+      text-wrap: balance;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 600px;
+      color: #241f20;
+      transition: opacity 0.3s ease;
+    }
+
+    #description.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #description .typed-text {
+      border-right: 2px solid #241f20;
+      padding-right: 4px;
+      animation: blink-caret 0.75s step-end infinite;
+    }
+
+    #description.done .typed-text {
+      border-right: none;
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50% { border-color: #241f20; }
+    }
+
+    .logos {
+      margin-top: 1.5rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .logos.visible {
+      opacity: 1;
+    }
+
+    .logos img {
+      height: 35px;
+      margin: 0 8px;
+      opacity: 0.7;
+    }
+
+    /* Responsive typography */
+    @media screen and (min-width: 1025px) {
+      #apology { font-size: calc(14vh + 2vmin); }
+      #apology.smaller { font-size: calc(9vh + 2vmin); }
+    }
+
+    @media screen and (max-width: 1024px) {
+      #apology { font-size: calc(7vh + 2vmin); }
+      #apology.smaller { font-size: calc(5vh + 2vmin); }
+    }
+
+    @media screen and (max-width: 600px) {
+      #apology { font-size: calc(5vh + 3vmin); }
+      #apology.smaller { font-size: calc(3.5vh + 2vmin); }
+      #description { font-size: 0.7rem; bottom: 2vh; }
+      .logos img { height: 28px; }
+    }
+
+    /* Tap hint for mobile */
+    #tap-hint {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 0.85rem;
+      opacity: 0.5;
+      color: #241f20;
+      margin-top: 1vh;
+      display: none;
+    }
+
+    .container.initial #tap-hint {
+      display: none;
+    }
+
+    @media (hover: none) {
+      .container.initial #tap-hint { display: block; }
+    }
+
+    .container:not(.initial) #description,
+    .container:not(.initial) #tap-hint {
+      display: none;
+    }
+
+    /* Entry screen */
+    #entry {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+    }
+
+    #entry.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #entry span {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      font-size: calc(4vh + 2vmin);
+      color: #241f20;
+    }
+  </style>
+</head>
+<body>
+  <div id="entry">
+    <span>Click to enter</span>
+  </div>
+
+  <div class="container initial">
+    <h1 id="apology">Press spacebar<br>to apologize</h1>
+    <p id="tap-hint">(or tap anywhere)</p>
+    <div id="description">
+      <span class="typed-text"></span>
+      <div class="logos">
+        <img src="kosice.png" alt="Kosice">
+        <img src="cike.png" alt="Creative Industry Kosice">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const APOLOGIES = [
+      "I'm sorry for being gay",
+      "I'm sorry for being sad",
+      "I'm sorry for being rude",
+      "I'm sorry for being late",
+      "I'm sorry for being smug",
+      "I'm sorry for being real",
+      "I'm sorry for being dead",
+      "I'm sorry for being here",
+      "I'm sorry for being a bad",
+      "I'm sorry for being weird",
+      "I'm sorry for being short",
+      "I'm sorry for being a car",
+      "I'm sorry for being trans",
+      "I'm sorry for being horny",
+      "I'm sorry for being so bi",
+      "I'm sorry for being alive",
+      "I'm sorry for being so lol",
+      "I'm sorry for being a slut",
+      "I'm sorry for being a year",
+      "I'm sorry for being not me",
+      "I'm sorry for being a ride",
+      "I'm sorry for being so bad",
+      "I'm sorry for being better",
+      "I'm sorry for being so sad",
+      "I'm sorry for being a hold",
+      "I'm sorry for being a furry",
+      "I'm sorry for being the way",
+      "I'm sorry for being so late",
+      "I'm sorry for being british",
+      "I'm sorry for being my life",
+      "I'm sorry for being a whore",
+      "I'm sorry for being a weird",
+      "I'm sorry for being a gamer",
+      "I'm sorry for being so cute",
+      "I'm sorry for being a bitch",
+      "I'm sorry for being so mean",
+      "I'm sorry for being so dumb",
+      "I'm sorry for being a story",
+      "I'm sorry for being so nice",
+      "I'm sorry for being the one",
+      "I'm sorry for being too much",
+      "I'm sorry for being so upset",
+      "I'm sorry for being my house",
+      "I'm sorry for being a friend",
+      "I'm sorry for being here now",
+      "I'm sorry for being so weird",
+      "I'm sorry for being so brave",
+      "I'm sorry for being annoying",
+      "I'm sorry for being the mall",
+      "I'm sorry for being a stupid",
+      "I'm sorry for being so sweet",
+      "I'm sorry for being the king",
+      "I'm sorry for being a burden",
+      "I'm sorry for being so silly",
+      "I'm sorry for being a chance",
+      "I'm sorry for being so funny",
+      "I'm sorry for being so sorry",
+      "I'm sorry for being a pretzel",
+      "I'm sorry for being brazilian",
+      "I'm sorry for being a call me",
+      "I'm sorry for being a meeting",
+      "I'm sorry for being non gamer",
+      "I'm sorry for being a lesbian",
+      "I'm sorry for being me on top",
+      "I'm sorry for being so stupid",
+      "I'm sorry for being the house",
+      "I'm sorry for being so pretty",
+      "I'm sorry for being so sad bye",
+      "I'm sorry for being so bad guy",
+      "I'm sorry for being on the way",
+      "I'm sorry for being an awesome",
+      "I'm sorry for being horrendous",
+      "I'm sorry for being the office",
+      "I'm sorry for being so sorry to",
+      "I'm sorry for being a dean stan",
+      "I'm sorry for being so annoying",
+      "I'm sorry for being a bad bitch",
+      "I'm sorry for being a bitch boy",
+      "I'm sorry for being so confused",
+      "I'm sorry for being so straight",
+      "I'm sorry for being transgender",
+      "I'm sorry for being a bad person",
+      "I'm sorry for being a single mom",
+      "I'm sorry for being such a bitch",
+      "I'm sorry for being so bad bitch",
+      "I'm sorry for being so relatable",
+      "I'm sorry for being so weird guy",
+      "I'm sorry for being a kind person",
+      "I'm sorry for being a good friend",
+      "I'm sorry for being an elite team",
+      "I'm sorry for being a little girl",
+      "I'm sorry for being the wrong guy",
+      "I'm sorry for being a good person",
+      "I'm sorry for being a little while",
+      "I'm sorry for being so much for me",
+      "I'm sorry for being awesome friend",
+      "I'm sorry for being such an honour",
+      "I'm sorry for being so upset about",
+      "I'm sorry for being a little bitch",
+      "I'm sorry for being a part of mine",
+      "I'm sorry for being so stupid bruh",
+      "I'm sorry for being the links to me",
+      "I'm sorry for being rude to make up",
+      "I'm sorry for being so long day boy",
+      "I'm sorry for being a good at least",
+      "I'm sorry for being so annoying omg",
+      "I'm sorry for being a blanket goblin",
+      "I'm sorry for being in my own friend",
+      "I'm sorry for being ik sorry for you",
+      "I'm sorry for being so understanding",
+      "I'm sorry for being so weird but you",
+      "I'm sorry for being so uncomfortable",
+      "I'm sorry for being a little bit late",
+      "I'm sorry for being an awesome friend",
+      "I'm sorry for being a little confused",
+      "I'm sorry for being such a little boy",
+      "I'm sorry for being me a little bitch",
+      "I'm sorry for being a terrible person",
+      "I'm sorry for being late to get along",
+      "I'm sorry for being a bit of the stuff",
+      "I'm sorry for being late but i thought",
+      "I'm sorry for being so fucking dumbass",
+      "I'm sorry for being so slow and honest",
+      "I'm sorry for being late to get the one",
+      "I'm sorry for being rude to make a boat",
+      "I'm sorry for being a normal flat color",
+      "I'm sorry for being rude to him so late",
+      "I'm sorry for being the first one person",
+      "I'm sorry for being a to get on the void",
+      "I'm sorry for being so late and heats up",
+      "I'm sorry for being so sorry i am so sad",
+      "I'm sorry for being bullied by the phone",
+      "I'm sorry for being so annoying and sour",
+      "I'm sorry for being a lazy person but you",
+      "I'm sorry for being a dream advice on top",
+      "I'm sorry for being so fucking dumb bitch",
+      "I'm sorry for being so much more than you",
+      "I'm sorry for being a little mountain bike",
+      "I'm sorry for being such an awesome friend",
+      "I'm sorry for being a very happy with klaus",
+      "I'm sorry for being so lazylmao me and feel",
+      "I'm sorry for being a trans person who here",
+      "I'm sorry for being horny it looks so stupid",
+      "I'm sorry for being a good person ever heard",
+      "I'm sorry for being so fucking stupid person",
+      "I'm sorry for being a newbie to me work i did",
+      "I'm sorry for being late to tell anyone about",
+      "I'm sorry for being so sick i can even realise",
+      "I'm sorry for being a salted caramel ice-cream",
+      "I'm sorry for being a good friend of a bandana",
+      "I'm sorry for being late to you have to go home",
+      "I'm sorry for being the back down there anymore",
+      "I'm sorry for being there for the fact that you",
+      "I'm sorry for being a bit of the only way to read",
+      "I'm sorry for being so late to take a great person",
+      "I'm sorry for being and feeling like to this email",
+      "I'm sorry for being the end it for some reason you",
+      "I'm sorry for being too but you out of people that",
+      "I'm sorry for being a really sure what to this ball",
+      "I'm sorry for being so mean and confused and family",
+      "I'm sorry for being a bit of mega man what to say hi",
+      "I'm sorry for being so sad i have to get a homophobe",
+      "I'm sorry for being such a clearance on the american",
+      "I'm sorry for being i do not know why i have a bitch",
+      "I'm sorry for being a progressive alliance to go home",
+      "I'm sorry for being a lesbian creature that is a bitch",
+      "I'm sorry for being so dumb and thoughtful and hope it",
+      "I'm sorry for being so annoying and foot in the homies",
+      "I'm sorry for being gay cat but i can do not have been",
+      "I'm sorry for being so tired i thought we just a cloth",
+      "I'm sorry for being late but i am still the best wishes",
+      "I'm sorry for being a misunderstanding of a little girl",
+      "I'm sorry for being such a good at you know how much fun",
+      "I'm sorry for being rude to you about that day and get us",
+      "I'm sorry for being an issue here to this time in my life",
+      "I'm sorry for being late and you had any idea how that you",
+      "I'm sorry for being disrespectful and i am tired of a bitch",
+      "I'm sorry for being a bitch day you could have a drama queen",
+      "I'm sorry for being so confused and honest and get some milk",
+      "I'm sorry for being a strategic choice of the new york times",
+      "I'm sorry for being so understanding of them with your friend",
+      "I'm sorry for being my email but it would like it to the rest",
+      "I'm sorry for being so angry i am not know i was a good guy it",
+      "I'm sorry for being so upset about you expecting a great person",
+      "I'm sorry for being trans as the brick wall over a little bitch",
+      "I'm sorry for being so mean to do not have a bit late to say hi",
+      "I'm sorry for being so sorry for you and that youtube videos suck",
+      "I'm sorry for being a little more into work and what to this shit",
+      "I'm sorry for being a lot to expect but i am sorry for a good day",
+      "I'm sorry for being late and i wanna go to this weekend so chaotic",
+      "I'm sorry for being so i can totally fine for some rest of a bitch",
+      "I'm sorry for being so sorry for you are going to get the stupid guy",
+      "I'm sorry for being so bad but it is a while walking on vacation yet",
+      "I'm sorry for being so sorry i am not know that gif i watched and tired",
+      "I'm sorry for being a good night before you have not feel about the body",
+      "I'm sorry for being gay oh my phone with my house and i think you anymore",
+      "I'm sorry for being a human in any questions about it looks like to be there",
+      "I'm sorry for being a chance to ask you are not replying to me a good person",
+      "I'm sorry for being late and i am still the brick wall over there at planning",
+      "I'm sorry for being our parents and i am sorry i hope that i will be fine but i"
+    ];
+
+    const FONTS = [
+      "'Roboto', sans-serif",
+      "'Open Sans', sans-serif",
+      "'Raleway', sans-serif",
+      "'Abril Fatface', serif",
+      "'Berkshire Swash', serif",
+      "'Arvo', serif",
+      "'Spectral', serif",
+      "'Germania One', serif",
+      "'Fredoka One', sans-serif",
+      "'Space Mono', monospace",
+      "'Quantico', sans-serif"
+    ];
+
+    // Golden angle for hue progression - guarantees color variety
+    const GOLDEN_ANGLE = 137.508;
+    let lastHue = Math.random() * 360; // Start random
+
+    function getNextColorPair() {
+      // Rotate hue by golden angle - never similar consecutive colors
+      lastHue = (lastHue + GOLDEN_ANGLE) % 360;
+      const bgHue = lastHue;
+
+      // Complementary hue for text (opposite side of wheel)
+      const textHue = (bgHue + 180) % 360;
+
+      // Randomly choose dark or bright mode
+      const isDarkMode = Math.random() > 0.5;
+
+      // High chroma for vibrant colors
+      const bgChroma = 0.2 + Math.random() * 0.12;
+      const textChroma = 0.22 + Math.random() * 0.1;
+
+      let bgL, textL;
+      if (isDarkMode) {
+        // Dark background, bright vibrant text
+        bgL = 0.2 + Math.random() * 0.15;  // 20-35%
+        textL = 0.75 + Math.random() * 0.15; // 75-90%
+      } else {
+        // Bright background, dark vibrant text
+        bgL = 0.7 + Math.random() * 0.15;  // 70-85%
+        textL = 0.25 + Math.random() * 0.12; // 25-37%
+      }
+
+      return {
+        bg: { l: bgL, c: bgChroma, h: bgHue },
+        text: { l: textL, c: textChroma, h: textHue }
+      };
+    }
+
+    function oklchToString({ l, c, h }) {
+      return `oklch(${l} ${c} ${h})`;
+    }
+
+    function apologize() {
+      // Stop typing sound if still playing
+      typeSound.pause();
+      typeSound.currentTime = 0;
+
+      const apology = APOLOGIES[Math.floor(Math.random() * APOLOGIES.length)];
+      const font = FONTS[Math.floor(Math.random() * FONTS.length)];
+      const colors = getNextColorPair();
+      const bgColor = oklchToString(colors.bg);
+      const textColor = oklchToString(colors.text);
+
+      // Move to center position
+      document.querySelector('.container').classList.remove('initial');
+
+      const el = document.getElementById('apology');
+      el.textContent = apology;
+      el.style.fontFamily = font;
+      el.style.color = textColor;
+
+      // Add smaller class for long apologies
+      if (apology.length > 45) {
+        el.classList.add('smaller');
+      } else {
+        el.classList.remove('smaller');
+      }
+
+      document.body.style.backgroundColor = bgColor;
+      document.getElementById('description').classList.add('hidden');
+    }
+
+    // Typing animation
+    const descriptionText = "This project hyperbolizes the sociological phenomena of over-apologizing. Apologizing too quickly can come with social consequences—especially for women in a workplace. This is an exploration of an intersection between AI and graphic design.";
+
+    // Typing sound - old typewriter (plays 3x speed, loops)
+    const typeSound = new Audio('https://assets.codepen.io/162656/audio-old-typewriter.wav');
+    typeSound.volume = 0.5;
+    typeSound.playbackRate = 3;
+    typeSound.loop = true;
+
+    function typeText() {
+      const typedEl = document.querySelector('.typed-text');
+      let i = 0;
+
+      // Start the typewriter sound (looping)
+      typeSound.currentTime = 0;
+      typeSound.play().catch(() => {});
+
+      function type() {
+        if (i < descriptionText.length) {
+          typedEl.textContent += descriptionText.charAt(i);
+          i++;
+
+          // Natural typing speed with variation
+          const delay = descriptionText.charAt(i-1) === '.' ? 300 :
+                        descriptionText.charAt(i-1) === ',' ? 150 :
+                        30 + Math.random() * 40;
+          setTimeout(type, delay);
+        } else {
+          // Stop the sound and show logos
+          typeSound.pause();
+          document.getElementById('description').classList.add('done');
+          document.querySelector('.logos').classList.add('visible');
+        }
+      }
+
+      setTimeout(type, 300);
+    }
+
+    // Entry screen handler
+    let hasEntered = false;
+
+    function enterSite() {
+      if (hasEntered) return;
+      hasEntered = true;
+
+      // Hide entry screen
+      document.getElementById('entry').classList.add('hidden');
+
+      // Start typing after fade
+      setTimeout(typeText, 500);
+    }
+
+    document.getElementById('entry').addEventListener('click', enterSite);
+    document.getElementById('entry').addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        enterSite();
+      }
+    });
+
+    // Keyboard support for apologies (only after entering)
+    document.addEventListener('keydown', (e) => {
+      if (!hasEntered) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        apologize();
+      }
+    });
+
+    // Touch/click support for apologies (only after entering)
+    document.querySelector('.container').addEventListener('click', apologize);
+  </script>
+</body>
+</html>
