@@ -73,9 +73,20 @@
       transition: opacity 0.3s ease;
     }
 
-    #description .typed-text {
+    #description .typed-wrapper {
+      position: relative;
       display: block;
-      min-height: 6em;
+    }
+
+    #description .typed-placeholder {
+      visibility: hidden;
+    }
+
+    #description .typed-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
     }
 
     /* Desktop/mobile text switching */
@@ -226,7 +237,10 @@
   <div class="container initial">
     <h1 id="apology"><span class="desktop-text">Press spacebar<br>to apologize</span><span class="mobile-text">Tap<br>to apologize</span></h1>
     <div id="description">
-      <span class="typed-text"></span>
+      <div class="typed-wrapper">
+        <span class="typed-placeholder">This project hyperbolizes the sociological phenomena of over-apologizing. Apologizing too quickly can come with social consequences—especially for women in a workplace. This is an exploration of an intersection between AI and graphic design.</span>
+        <span class="typed-text"></span>
+      </div>
       <div class="logos">
         <img src="kosice.png" alt="Kosice">
         <img src="cike.png" alt="Creative Industry Kosice">
