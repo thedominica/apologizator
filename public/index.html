@@ -63,14 +63,28 @@
     #description {
       margin-top: 3vh;
       text-align: center;
-      text-wrap: balance;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-weight: 400;
       font-size: 1rem;
       line-height: 1.6;
       max-width: 600px;
+      width: 90vw;
       color: #241f20;
       transition: opacity 0.3s ease;
+    }
+
+    #description .typed-text {
+      display: block;
+      min-height: 6em;
+    }
+
+    /* Desktop/mobile text switching */
+    .mobile-text { display: none; }
+    .desktop-text { display: inline; }
+
+    @media (hover: none) and (pointer: coarse) {
+      .mobile-text { display: inline; }
+      .desktop-text { display: none; }
     }
 
     #description.hidden {
@@ -78,14 +92,15 @@
       pointer-events: none;
     }
 
-    #description .typed-text {
+    #description .typed-text::after {
+      content: '';
       border-right: 2px solid #241f20;
-      padding-right: 4px;
+      padding-right: 2px;
       animation: blink-caret 0.75s step-end infinite;
     }
 
-    #description.done .typed-text {
-      border-right: none;
+    #description.done .typed-text::after {
+      display: none;
     }
 
     @keyframes blink-caret {
@@ -127,26 +142,7 @@
       .logos img { height: 28px; }
     }
 
-    /* Tap hint for mobile */
-    #tap-hint {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 0.85rem;
-      opacity: 0.5;
-      color: #241f20;
-      margin-top: 1vh;
-      display: none;
-    }
-
-    .container.initial #tap-hint {
-      display: none;
-    }
-
-    @media (hover: none) {
-      .container.initial #tap-hint { display: block; }
-    }
-
-    .container:not(.initial) #description,
-    .container:not(.initial) #tap-hint {
+    .container:not(.initial) #description {
       display: none;
     }
 
@@ -204,7 +200,8 @@
     @media screen and (max-width: 600px) {
       #save-btn {
         bottom: 15px;
-        right: 15px;
+        right: 50%;
+        transform: translateX(50%);
       }
       #save-btn svg {
         width: 20px;
@@ -227,8 +224,7 @@
   </button>
 
   <div class="container initial">
-    <h1 id="apology">Press spacebar<br>to apologize</h1>
-    <p id="tap-hint">(or tap anywhere)</p>
+    <h1 id="apology"><span class="desktop-text">Press spacebar<br>to apologize</span><span class="mobile-text">Tap<br>to apologize</span></h1>
     <div id="description">
       <span class="typed-text"></span>
       <div class="logos">
@@ -557,15 +553,33 @@
     typeSound.playbackRate = 3;
     typeSound.loop = true;
 
+    let isTyping = false;
+    let skipTyping = false;
+
+    function finishTyping() {
+      const typedEl = document.querySelector('.typed-text');
+      typedEl.textContent = descriptionText;
+      typeSound.pause();
+      document.getElementById('description').classList.add('done');
+      document.querySelector('.logos').classList.add('visible');
+      isTyping = false;
+    }
+
     function typeText() {
       const typedEl = document.querySelector('.typed-text');
       let i = 0;
+      isTyping = true;
+      skipTyping = false;
 
       // Start the typewriter sound (looping)
       typeSound.currentTime = 0;
       typeSound.play().catch(() => {});
 
       function type() {
+        if (skipTyping) {
+          finishTyping();
+          return;
+        }
         if (i < descriptionText.length) {
           typedEl.textContent += descriptionText.charAt(i);
           i++;
@@ -576,10 +590,7 @@
                         30 + Math.random() * 40;
           setTimeout(type, delay);
         } else {
-          // Stop the sound and show logos
-          typeSound.pause();
-          document.getElementById('description').classList.add('done');
-          document.querySelector('.logos').classList.add('visible');
+          finishTyping();
         }
       }
 
@@ -613,12 +624,24 @@
       if (!hasEntered) return;
       if (e.code === 'Space') {
         e.preventDefault();
-        apologize();
+        // Skip typing if in progress, otherwise apologize
+        if (isTyping) {
+          skipTyping = true;
+        } else {
+          apologize();
+        }
       }
     });
 
     // Touch/click support for apologies (only after entering)
-    document.querySelector('.container').addEventListener('click', apologize);
+    document.querySelector('.container').addEventListener('click', () => {
+      // Skip typing if in progress, otherwise apologize
+      if (isTyping) {
+        skipTyping = true;
+      } else {
+        apologize();
+      }
+    });
 
     // Save apology as image
     function saveApology() {
